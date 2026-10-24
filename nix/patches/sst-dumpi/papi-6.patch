@@ -1,0 +1,149 @@
+PAPI 6 removed the high-level counter API (PAPI_start_counters,
+PAPI_accum_counters, PAPI_num_counters) and changed PAPI_perror.  Use a
+per-thread event set with PAPI_accum, and PAPI_num_cmp_hwctrs(0).
+
+--- a/dumpi/common/perfctrs.c	2026-10-16 16:29:14.855315229 -0400
++++ b/dumpi/common/perfctrs.c	2026-10-16 16:29:40.331137983 -0400
+@@ -58,9 +58,17 @@
+ 
+ /*
+  * Updated to hold accumulated values in thread-local storage.
++ *
++ * PAPI 6 removed the high-level counter calls.  Each thread now has an
++ * event set, which PAPI_accum reads into the accumulators.
+  */
+ typedef long long dumpi_papi_accum_t;
+ 
++typedef struct dumpi_papi_thread_t {
++  int eventset;
++  dumpi_papi_accum_t accum[DUMPI_MAX_PERFCTRS];
++} dumpi_papi_thread_t;
++
+ static int active_counters_ = 0;
+ static int *papi_code_ = NULL;
+ static dumpi_perflabel_t *papi_label_ = NULL;
+@@ -68,7 +76,7 @@
+ #ifdef DUMPI_USE_PTHREADS
+ static pthread_key_t *accum_key_ = NULL;
+ #else
+-static dumpi_papi_accum_t *accum_global_ = NULL;
++static dumpi_papi_thread_t *accum_global_ = NULL;
+ #endif /* ! DUMPI_USE_PTHREADS */
+ 
+ #define DUMPI_MIN(A, B) (((A) < (B)) ? (A) : (B))
+@@ -81,37 +89,42 @@
+ #define DUMPI_UNLOCK_MUTEX
+ #endif /* ! DUMPI_USE_PTHREADS */
+ 
++/* Create and start the event set of the current thread */
++static dumpi_papi_thread_t* start_thread_counters(void) {
++  int ret;
++  dumpi_papi_thread_t *state =
++    (dumpi_papi_thread_t*)calloc(1, sizeof(dumpi_papi_thread_t));
++  assert(state != NULL);
++  state->eventset = PAPI_NULL;
++  if((ret = PAPI_create_eventset(&state->eventset)) != PAPI_OK ||
++     (ret = PAPI_add_events(state->eventset, papi_code_, active_counters_))
++       != PAPI_OK ||
++     (ret = PAPI_start(state->eventset)) != PAPI_OK) {
++    fprintf(stderr, "Failed to start PAPI counters: %s\n", PAPI_strerror(ret));
++    free(state);
++    return NULL;
++  }
++  return state;
++}
++
+ /* Initialize accumulators for the current thread */
+-static inline dumpi_papi_accum_t* get_accumulators(void) {
++static inline dumpi_papi_thread_t* get_accumulators(void) {
+ #ifdef DUMPI_USE_PTHREADS
+-  int ret;
+-  dumpi_papi_accum_t *accum;
++  dumpi_papi_thread_t *state;
+   if(accum_key_ == NULL) {
+     accum_key_ = (pthread_key_t*)malloc(sizeof(pthread_key_t));
+     assert(accum_key_ != NULL);
+     assert(pthread_key_create(accum_key_, free) == 0);
+   }
+-  accum = (dumpi_papi_accum_t*)pthread_getspecific(*accum_key_);
+-  if(accum == NULL) {
+-    /* start the counters */
+-    if(active_counters_ > 0) {
+-      if((ret = PAPI_start_counters(papi_code_, active_counters_)) != PAPI_OK){
+-	fprintf(stderr, "Failed to start PAPI counters: %s\n",
+-		PAPI_strerror(ret));
+-	return NULL;
+-      }
+-      accum = (dumpi_papi_accum_t*)calloc(active_counters_,
+-					  sizeof(dumpi_papi_accum_t));
+-      assert(accum != NULL);
+-      assert(pthread_setspecific(*accum_key_, accum) == 0);
+-    }
++  state = (dumpi_papi_thread_t*)pthread_getspecific(*accum_key_);
++  if(state == NULL && active_counters_ > 0) {
++    if((state = start_thread_counters()) != NULL)
++      assert(pthread_setspecific(*accum_key_, state) == 0);
+   }
+-  return accum;
++  return state;
+ #else /* ! DUMPI_USE_PTHREADS */
+-  if(! accum_global_) {
+-    assert((accum_global_ =
+-            (dumpi_papi_accum_t*)calloc(1, sizeof(dumpi_papi_accum_t)))
+-           != NULL);
++  if(! accum_global_ && active_counters_ > 0) {
++    accum_global_ = start_thread_counters();
+   }
+   return accum_global_;
+ #endif /* ! DUMPI_USE_PTHREADS */
+@@ -128,14 +141,23 @@
+   /* Initialize PAPI.  Return 0 if PAPI fails. */
+   ret = PAPI_library_init(PAPI_VER_CURRENT);
+   if(ret != PAPI_VER_CURRENT) {
+-    PAPI_perror(errstr);
++    strncpy(errstr, PAPI_strerror(ret), PAPI_MAX_STR_LEN);
+     fprintf(stderr, "dumpi_init_perfctrs:  Error initializing PAPI:  %s\n",
+ 	    errstr);
+     assert(ret == PAPI_VER_CURRENT);
+     return 0;
+   }
++#ifdef DUMPI_USE_PTHREADS
++  /* Event sets are per thread. */
++  ret = PAPI_thread_init(pthread_self);
++  if(ret != PAPI_OK) {
++    fprintf(stderr, "dumpi_init_perfctrs:  Error in PAPI_thread_init:  %s\n",
++	    PAPI_strerror(ret));
++    return 0;
++  }
++#endif /* DUMPI_USE_PTHREADS */
+   /* Allocate storage */
+-  maxcount = DUMPI_MIN(PAPI_num_counters(), DUMPI_MAX_PERFCTRS);
++  maxcount = DUMPI_MIN(PAPI_num_cmp_hwctrs(0), DUMPI_MAX_PERFCTRS);
+   papi_code_ = (int*)calloc(maxcount, sizeof(int));
+   papi_label_ = (dumpi_perflabel_t*)calloc(maxcount, sizeof(dumpi_perflabel_t));
+   assert(papi_code_ != NULL && papi_label_ != NULL);
+@@ -173,20 +195,20 @@
+ 			dumpi_perfinfo_direction direction)
+ {
+   int i;
+-  dumpi_papi_accum_t *accum;  
++  dumpi_papi_thread_t *state;
+   int64_t *active_ctr = (direction == DUMPI_PERFCTR_IN ?
+ 			 perf->invalue : perf->outvalue);
+   (void)profile;
+   if(active_counters_ > 0) {
+-    assert((accum = get_accumulators()) != NULL);
++    assert((state = get_accumulators()) != NULL);
+     perf->count = active_counters_;
+     if(active_counters_) {
+-      PAPI_accum_counters(accum, active_counters_);
++      PAPI_accum(state->eventset, state->accum);
+       for(i = 0; i < active_counters_; ++i) {
+ 	/* THIS NEEDS TO BE FIXED */
+ 	strncpy(perf->counter_tag[i], papi_label_[i], DUMPI_MAX_PERFCTR_NAME-1);
+ 	perf->counter_tag[i][DUMPI_MAX_PERFCTR_NAME-1] = '\0';
+-	active_ctr[i] = accum[i];
++	active_ctr[i] = state->accum[i];
+       }
+     }
+   }

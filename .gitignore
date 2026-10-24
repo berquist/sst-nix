@@ -1,0 +1,21 @@
+# SST checkouts.  They are separate git repositories, and the flake must not
+# copy them into the store.  `just nix-build` uses them through path: inputs.
+/sst-core/
+/sst-elements/
+/sst-macro/
+/sst-hgcc/
+/sst-sqe/
+/juno/
+/sst-external-element/
+
+# Third-party sources, read when writing their packages
+/third-party/
+
+# Build output and tool state
+/build/
+/install/
+/result
+/result-*
+/.direnv/
+/.scratch/
+/bamboo*.log

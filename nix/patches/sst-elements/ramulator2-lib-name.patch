@@ -1,0 +1,21 @@
+memHierarchy: link Ramulator 2 as -lramulator2 when that library exists.
+Ramulator 1 and 2 both build libramulator.so, so with both backends the
+second -lramulator resolves to Ramulator 1 and the Ramulator 2 symbols stay
+undefined when libmemHierarchy.so is loaded.
+
+--- a/config/sst_check_ramulator2.m4	2026-10-17 16:00:17.364777050 -0400
++++ b/config/sst_check_ramulator2.m4	2026-10-17 16:00:17.383777607 -0400
+@@ -27,8 +27,12 @@
+   AC_CHECK_HEADERS([base/base.h], [], [sst_check_ramulator2_happy="no"])
+   AC_CHECK_FILE([$with_ramulator2/libramulator.so], #[_ZZN4YAML3Exp3TagEvE1e],
+     [sst_check_ramulator2_happy="yes"], [sst_check_ramulator2_happy="no"])
++  dnl Ramulator 1 also builds a libramulator.so; with both, -lramulator
++  dnl twice finds the first one.  Prefer a libramulator2.so if there is one.
+   AS_IF([test "$sst_check_ramulator2_happy" = "yes"],
+-        [RAMULATOR2_LIB="-lramulator"])
++        [AS_IF([test -e "$with_ramulator2/libramulator2.so"],
++               [RAMULATOR2_LIB="-lramulator2"],
++               [RAMULATOR2_LIB="-lramulator"])])
+   AC_LANG_POP(C++)
+ 
+   CXXFLAGS="$CXXFLAGS_saved"

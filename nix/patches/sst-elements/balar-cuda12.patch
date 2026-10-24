@@ -1,0 +1,64 @@
+balar: build with CUDA 12.  CUDA 12 removed struct textureReference, which
+balar packets carry by value; define its CUDA 11 layout when CUDA >= 12.
+
+--- a/src/sst/elements/balar/balar_packet.h	2026-10-17 15:43:55.083089923 -0400
++++ b/src/sst/elements/balar/balar_packet.h	2026-10-17 15:43:55.109090680 -0400
+@@ -23,6 +23,7 @@
+ #include <stdbool.h>
+ #include "builtin_types.h"
+ #include "driver_types.h"
++#include "balar_cuda12_compat.h"
+ #include "balar_consts.h"
+ 
+ namespace SST {
+--- a/src/sst/elements/balar/Makefile.am	2026-10-17 15:43:55.087090039 -0400
++++ b/src/sst/elements/balar/Makefile.am	2026-10-17 15:44:04.391360974 -0400
+@@ -13,6 +13,7 @@
+ libbalar_la_SOURCES = \
+ 	balar_consts.h \
+ 	balar_packet.h \
++	balar_cuda12_compat.h \
+ 	balarMMIO.cc \
+ 	balarMMIO.h \
+ 	cuda_runtime_api.h \
+--- a/src/sst/elements/balar/balar_cuda12_compat.h	1969-12-31 19:00:00.000000000 -0500
++++ b/src/sst/elements/balar/balar_cuda12_compat.h	1969-12-31 19:00:00.000000000 -0500
+@@ -0,0 +1,38 @@
++// Copyright 2009-2026 NTESS. Under the terms
++// of Contract DE-NA0003525 with NTESS, the U.S.
++// Government retains certain rights in this software.
++//
++// This file is part of the SST software package. For license
++// information, see the LICENSE file in the top level directory of the
++// distribution.
++
++#ifndef BALAR_CUDA12_COMPAT_H
++#define BALAR_CUDA12_COMPAT_H
++
++// CUDA 12 removed texture references, and with them struct textureReference,
++// which balar packets carry by value.  GPGPU-Sim only handles it through
++// pointers.  This is the layout of CUDA 11 (texture_types.h).
++
++#include <cuda.h>
++#include "driver_types.h"
++#include "texture_types.h"
++
++#if CUDA_VERSION >= 12000
++struct textureReference
++{
++    int                          normalized;
++    enum cudaTextureFilterMode   filterMode;
++    enum cudaTextureAddressMode  addressMode[3];
++    struct cudaChannelFormatDesc channelDesc;
++    int                          sRGB;
++    unsigned int                 maxAnisotropy;
++    enum cudaTextureFilterMode   mipmapFilterMode;
++    float                        mipmapLevelBias;
++    float                        minMipmapLevelClamp;
++    float                        maxMipmapLevelClamp;
++    int                          disableTrilinearOptimization;
++    int                          __cudaReserved[14];
++};
++#endif
++
++#endif // BALAR_CUDA12_COMPAT_H

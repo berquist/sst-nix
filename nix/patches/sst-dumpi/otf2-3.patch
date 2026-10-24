@@ -1,0 +1,44 @@
+OTF2 3.0 added an argument to WriteClockProperties, WriteLocationGroup and
+WriteComm.  Pass the "undefined"/"none" values there, keep the OTF2 2 calls.
+
+--- a/dumpi/libotf2dump/otf2writer.cc	2026-10-16 15:45:16.852350407 -0400
++++ b/dumpi/libotf2dump/otf2writer.cc	2026-10-16 15:45:16.872351047 -0400
+@@ -827,7 +827,11 @@
+   check_otf2(OTF2_GlobalDefWriter_WriteClockProperties( defwriter,
+                                                         clock_resolution_,
+                                                         min_start_time,
+-                                                        max_start_time - min_start_time),
++                                                        max_start_time - min_start_time
++#if OTF2_VERSION_MAJOR >= 3
++                                                        , OTF2_UNDEFINED_TIMESTAMP
++#endif
++                                                        ),
+              "Writing clock properties to global def file");
+ 
+   // Strings must come first in the def file
+@@ -903,7 +907,11 @@
+     check_otf2(OTF2_GlobalDefWriter_WriteLocationGroup(defwriter,
+                 i, otf2_strings_table_.insert(rank_name),
+                 OTF2_LOCATION_GROUP_TYPE_PROCESS,
+-                0 /* This should point to the node this rank ran on. Not necessary for sst/macro trace replay.*/),
++                0 /* This should point to the node this rank ran on. Not necessary for sst/macro trace replay.*/
++#if OTF2_VERSION_MAJOR >= 3
++                , OTF2_UNDEFINED_LOCATION_GROUP
++#endif
++                ),
+                 "Writing Location Group to global def file");
+   }
+ 
+@@ -1005,7 +1013,11 @@
+                                     comm->global_id,
+                                     comm_name_ref_id,
+                                     grp->global_id,
+-                                    parent_comm_ref_id),
++                                    parent_comm_ref_id
++#if OTF2_VERSION_MAJOR >= 3
++                                    , OTF2_COMM_FLAG_NONE
++#endif
++                                    ),
+                                     "Writing a Communicator to global def file");
+ 
+   }

@@ -1,0 +1,86 @@
+OTF2 3.0 added an argument to the ClockProperties, LocationGroup and Comm
+definition callbacks.  Accept it when building with OTF2 3, keep the OTF2 2
+signatures otherwise.
+
+--- a/sstmac/skeletons/otf2_trace_replay/callbacks.h	2026-10-16 18:34:23.267064913 -0400
++++ b/sstmac/skeletons/otf2_trace_replay/callbacks.h	2026-10-16 18:34:23.291065705 -0400
+@@ -59,7 +59,11 @@
+     void*    userData,
+     uint64_t timerResolution,
+     uint64_t globalOffset,
+-    uint64_t traceLength);
++    uint64_t traceLength
++#if OTF2_VERSION_MAJOR >= 3
++    , uint64_t realtimeTimestamp
++#endif
++    );
+ 
+ OTF2_CallbackCode def_string(
+     void*          userData,
+@@ -79,7 +83,11 @@
+     OTF2_LocationGroupRef  self,
+     OTF2_StringRef         name,
+     OTF2_LocationGroupType locationGroupType,
+-    OTF2_SystemTreeNodeRef systemTreeParent );
++    OTF2_SystemTreeNodeRef systemTreeParent
++#if OTF2_VERSION_MAJOR >= 3
++    , OTF2_LocationGroupRef creatingLocationGroup
++#endif
++    );
+ 
+ OTF2_CallbackCode def_region(
+     void*           userData,
+@@ -115,7 +123,11 @@
+     OTF2_CommRef   self,
+     OTF2_StringRef name,
+     OTF2_GroupRef  group,
+-    OTF2_CommRef   parent );
++    OTF2_CommRef   parent
++#if OTF2_VERSION_MAJOR >= 3
++    , OTF2_CommFlag  flags
++#endif
++    );
+ 
+ OTF2_CallbackCode def_location_property(
+     void*               userData,
+--- a/sstmac/skeletons/otf2_trace_replay/callbacks.cc	2026-10-16 18:34:23.272065078 -0400
++++ b/sstmac/skeletons/otf2_trace_replay/callbacks.cc	2026-10-16 18:34:23.291065705 -0400
+@@ -86,7 +86,11 @@
+   void*    userData,
+   uint64_t timerResolution,
+   uint64_t globalOffset,
+-  uint64_t traceLength )
++  uint64_t traceLength
++#if OTF2_VERSION_MAJOR >= 3
++    , uint64_t /* realtimeTimestamp */
++#endif
++    )
+ {
+   auto app = (OTF2TraceReplayApp*)userData;
+   app->otf2_clock_properties =  {
+@@ -124,7 +128,11 @@
+   OTF2_LocationGroupRef  self,
+   OTF2_StringRef         name,
+   OTF2_LocationGroupType locationGroupType,
+-  OTF2_SystemTreeNodeRef systemTreeParent )
++  OTF2_SystemTreeNodeRef systemTreeParent
++#if OTF2_VERSION_MAJOR >= 3
++    , OTF2_LocationGroupRef /* creatingLocationGroup */
++#endif
++    )
+ {
+   return OTF2_CALLBACK_SUCCESS;
+ }
+@@ -203,7 +211,11 @@
+   OTF2_CommRef   id,
+   OTF2_StringRef name,
+   OTF2_GroupRef  group,
+-  OTF2_CommRef   parent )
++  OTF2_CommRef   parent
++#if OTF2_VERSION_MAJOR >= 3
++    , OTF2_CommFlag  /* flags */
++#endif
++    )
+ {
+   auto app = (OTF2TraceReplayApp*)userData;
+   //As I understand it, OTF2 has already done the local to global conversion

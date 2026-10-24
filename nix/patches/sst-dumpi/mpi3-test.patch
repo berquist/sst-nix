@@ -1,0 +1,50 @@
+MPI-3.0 removed MPI_Type_extent, MPI_Type_hvector and MPI_Type_hindexed, and
+Open MPI 5 no longer declares them.  Use the MPI-2 replacements in the test.
+
+--- a/dumpi/test/manip.c	2026-10-16 15:46:46.879231668 -0400
++++ b/dumpi/test/manip.c	2026-10-16 15:46:46.905232502 -0400
+@@ -279,7 +279,7 @@
+   MPI_Barrier(MPI_COMM_WORLD);
+   if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_vector test complete\n");
+   if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_hvector test started\n");
+-  MPI_Type_hvector(4, 3, 2, cont_type, &hvec_type);
++  MPI_Type_create_hvector(4, 3, 2, cont_type, &hvec_type);
+   MPI_Type_commit(&hvec_type);
+   MPI_Type_size(hvec_type, &typesize);
+   MPI_Barrier(MPI_COMM_WORLD);
+@@ -297,7 +297,7 @@
+     {
+       MPI_Aint hindexed_ind[] = {0, 8};
+       if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_hindexed test started\n");
+-      MPI_Type_hindexed(2, indexed_blen, hindexed_ind, hvec_type, &hind_type);
++      MPI_Type_create_hindexed(2, indexed_blen, hindexed_ind, hvec_type, &hind_type);
+       MPI_Type_commit(&hind_type);
+       MPI_Type_size(hind_type, &typesize);
+       MPI_Barrier(MPI_COMM_WORLD);
+@@ -366,7 +366,7 @@
+ 			   MPI_ORDER_C, intype, &darray_type);
+     MPI_Type_commit(&darray_type);
+     MPI_Type_size(darray_type, &typesize);
+-    MPI_Type_extent(darray_type, &typeextent);
++    { MPI_Aint typelb; MPI_Type_get_extent(darray_type, &typelb, &typeextent); };
+     MPI_Barrier(MPI_COMM_WORLD);
+     if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_create_darray test complete\n");
+   }
+@@ -380,7 +380,7 @@
+     MPI_Type_create_resized(MPI_INT, 0, 3*sizeof(int), &resized_type);
+     MPI_Type_commit(&resized_type);
+     MPI_Type_size(resized_type, &typesize);
+-    MPI_Type_extent(resized_type, &typeextent);
++    { MPI_Aint typelb; MPI_Type_get_extent(resized_type, &typelb, &typeextent); };
+     MPI_Barrier(MPI_COMM_WORLD);
+     if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_create_resized test complete\n");
+   }
+@@ -396,7 +396,7 @@
+ 			     MPI_INT, &subarray_type);
+     MPI_Type_commit(&subarray_type);
+     MPI_Type_size(subarray_type, &typesize);
+-    MPI_Type_extent(subarray_type, &typeextent);
++    { MPI_Aint typelb; MPI_Type_get_extent(subarray_type, &typelb, &typeextent); };
+     MPI_Barrier(MPI_COMM_WORLD);
+     if(DUMPI_VERBOSE && rank == 0) fprintf(stderr, "    MPI_Type_create_subarray test complete\n");
+   }

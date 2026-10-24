@@ -1,0 +1,172 @@
+{
+  "nodes": {
+    "flake-utils": {
+      "inputs": {
+        "systems": [
+          "systems"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791914995,
+        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "juno": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777653215,
+        "narHash": "sha256-P+3hsNwangtarK2r7ZuckcX7UddlSCEraRcXVelUTjU=",
+        "owner": "sstsimulator",
+        "repo": "juno",
+        "rev": "b3b4d397dcc9f3df82fe545778f76e90bbec71c2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "master",
+        "repo": "juno",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1791956154,
+        "narHash": "sha256-jBYGPi4udQ9uo4KQp9m2J0546nJVQitG15gvZSaVVAs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "55bfb4d7437bd4e09ab7cba58a43bd68eb310044",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "juno": "juno",
+        "nixpkgs": "nixpkgs",
+        "sst-core": "sst-core",
+        "sst-elements": "sst-elements",
+        "sst-external-element": "sst-external-element",
+        "sst-hgcc": "sst-hgcc",
+        "sst-macro": "sst-macro",
+        "systems": "systems"
+      }
+    },
+    "sst-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791576404,
+        "narHash": "sha256-NjUxFLnxVJdFNXztz8YMqlzdaKShqmkqNrVuIxJIwGg=",
+        "owner": "sstsimulator",
+        "repo": "sst-core",
+        "rev": "b4877e338a8b37637395a2cde1bfd67b1c973f09",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "devel",
+        "repo": "sst-core",
+        "type": "github"
+      }
+    },
+    "sst-elements": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792077092,
+        "narHash": "sha256-6lP/qBxVDarj/3lqWDHjtJJjDo9j9Ne2VVUWbKuSCEs=",
+        "owner": "sstsimulator",
+        "repo": "sst-elements",
+        "rev": "f7cc31ce54f9df493e75537229876450319d4407",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "devel",
+        "repo": "sst-elements",
+        "type": "github"
+      }
+    },
+    "sst-external-element": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777577379,
+        "narHash": "sha256-c7Eng4pIejtooLBZ14CZH32xhcidbepX4bxYno5h0tQ=",
+        "owner": "sstsimulator",
+        "repo": "sst-external-element",
+        "rev": "61363c1fc6e066d739def34a3de720daea3ac5ec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "master",
+        "repo": "sst-external-element",
+        "type": "github"
+      }
+    },
+    "sst-hgcc": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788460781,
+        "narHash": "sha256-aUCVfC0kER/MG7wtIVRBEtVBoJIzK7LaABdvooxYEY4=",
+        "owner": "sstsimulator",
+        "repo": "sst-hgcc",
+        "rev": "dd299f81b23b4913ddf3e7ddb6bb87d6043c3726",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "devel",
+        "repo": "sst-hgcc",
+        "type": "github"
+      }
+    },
+    "sst-macro": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777581162,
+        "narHash": "sha256-TmYYD/ZftpTru6qOUiAI8Natfo8Z/DTNIZ7eP4rW5HI=",
+        "owner": "sstsimulator",
+        "repo": "sst-macro",
+        "rev": "cd50ac2eb723b7fd3e78b02b65e3a7ba7250c618",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sstsimulator",
+        "ref": "devel",
+        "repo": "sst-macro",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1791244623,
+        "narHash": "sha256-uuanbkFk8a313Zfrxdcz8Us/yQtaxNnKJtX8v0ZPpd8=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "d36eeed142f88b5a636f2e3856a53c61654cf29b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
