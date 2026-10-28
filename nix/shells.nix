@@ -146,6 +146,12 @@ let
         source ${lmod.initDir}/bash
         export PYTHONPATH="${python}/${python.sitePackages}''${PYTHONPATH:+:$PYTHONPATH}"
       ''
+      # Programs that pebil instruments (the Ariel EPA tests make
+      # stream.arielinst and others) need its run-time libraries, such as
+      # libaddressstream.so.  PEBIL's bashrc sets this too.
+      + lib.optionalString havePebil ''
+        export LD_LIBRARY_PATH="${pebil}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+      ''
       + extraShellHook;
     };
 in
