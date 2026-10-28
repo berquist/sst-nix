@@ -393,6 +393,3 @@ Changes from the plan, and approaches that did not work:
   A recipe such as `just nix-build-locked <pkg>` that builds the locked
   flake package with the log in `.scratch/` would replace that.
   `just nix-build` already does the same for the local checkouts.
-- The Bash tool broke after a resume ("task output swap refused"), and
-  after the restart the sandbox PATH had no tools.  If it repeats, report
-  it.
