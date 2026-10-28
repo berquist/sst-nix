@@ -14,6 +14,8 @@
 # Build output and tool state
 /build/
 /install/
+/build-*/
+/install-*/
 /result
 /result-*
 /.direnv/

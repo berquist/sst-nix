@@ -1,6 +1,8 @@
 # Tasks for the SST checkouts in this directory.  Recipes run in the dev
 # shell (direnv or `nix develop`); the *-full recipes switch to the full
-# shell themselves.  Output goes to build/ and install/.
+# shell themselves, and `just clang <recipe>` runs a recipe in the clang
+# shell.  Output goes to build/ and install/ (Clang: build-clang/ and
+# install-clang/).
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
@@ -24,6 +26,10 @@ build-elements-full *configure_args:
 # Run sst-test-core or sst-test-elements against install/
 test suite *args:
     scripts/test.sh {{ suite }} {{ args }}
+
+# Run a recipe in the clang shell: Clang compiles, into build-clang/ and install-clang/
+clang recipe *args:
+    nix develop .#clang --command just {{ recipe }} {{ args }}
 
 # --- sst-sqe -------------------------------------------------------------------
 

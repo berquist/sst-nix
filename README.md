@@ -21,12 +21,13 @@ $ just test elements      # sst-test-elements against install/
 
 ## Shells
 
-| Shell     | Command              | Use                                                        |
-| --------- | -------------------- | ---------------------------------------------------------- |
-| `default` | `nix develop`        | All free dependencies; local builds, test suites, sst-sqe  |
-| `full`    | `nix develop .#full` | `default` plus Intel Pin, CUDA 12.9 and GPGPU-Sim (unfree) |
+| Shell     | Command               | Use                                                        |
+| --------- | --------------------- | ---------------------------------------------------------- |
+| `default` | `nix develop`         | All free dependencies; local builds, test suites, sst-sqe  |
+| `full`    | `nix develop .#full`  | `default` plus Intel Pin, CUDA 12.9 and GPGPU-Sim (unfree) |
+| `clang`   | `nix develop .#clang` | `default`, but Clang 22 compiles; see [Clang](#clang)      |
 
-Both shells provide:
+All shells provide:
 
 - every build input of sst-core, sst-elements (all optional libraries),
   sst-macro, sst-hgcc and sst-dumpi;
@@ -58,6 +59,7 @@ Both shells provide:
 | `just build-all`             | The same for all six projects, in order                   |
 | `just build-elements-full`   | sst-elements with Pin and CUDA, in the `full` shell       |
 | `just test <core\|elements>` | `sst-test-core` or `sst-test-elements` against `install/` |
+| `just clang <recipe> [args]` | Run a recipe in the `clang` shell; see [Clang](#clang)    |
 | `just sqe [log]`             | `sst-sqe/dev/run-bamboo-like-github.sh`, output to a log  |
 | `just nix-build [package]`   | Build a flake package from the local checkouts            |
 | `just check`                 | `nix flake check`                                         |
@@ -65,6 +67,28 @@ Both shells provide:
 Local builds are out of source in `build/<project>` and install into
 `install/<project>`.  Element libraries register with
 `install/sst-core/etc/sst/sstsimulator.conf`, as in a normal installation.
+
+## Clang
+
+`nix/clang.nix` rebuilds the packages of this flake with Clang 22, the LLVM
+of sst-hgcc, with libstdc++ as in nixpkgs' `clangStdenv`.  nixpkgs itself
+keeps its GCC builds.  Open MPI's `mpicc` and `mpicxx` call GCC unless
+`OMPI_CC` and `OMPI_CXX` name another compiler, so the Clang packages and
+the `clang` shell set both.  `overlays.clang` is `overlays.default` followed
+by `nix/clang.nix`.
+
+```console
+$ just clang build-all                     # into build-clang/ and install-clang/
+$ just clang test elements                 # against install-clang/
+$ nix build .#clang.sst-with-elements      # flake packages: legacyPackages.<system>.clang
+$ just nix-build clang.sst-with-elements   # the same, from the local checkouts
+```
+
+Not built with Clang: `openmpi_4` (only the sqe modulefiles use it),
+`intel-pin` (a binary), `gpgpu-sim` (nvcc), `lmod` (Lua) and the vanadis
+cross compilers.  There is no Clang variant of the `full` shell.  juno and
+sst-external-element build in their checkouts, so both toolchains use the
+library of the last build.
 
 ## Packages
 

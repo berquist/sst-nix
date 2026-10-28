@@ -5,10 +5,21 @@
 #            external element from source, run their test suites, and run
 #            sst-sqe/dev/run-bamboo-like-github.sh.
 #   full     default plus the unfree ones: Intel Pin, CUDA and GPGPU-Sim.
+#
+# flake.nix also calls this file with the Clang package set (clang.nix) for
+# its clang shell.
 {
   lib,
   pkgs,
+  stdenv,
   mkShell,
+  # Compiler of the local builds.  scripts/build.sh reads it from
+  # SST_TOOLCHAIN and puts the builds other than GCC in build-<toolchain>/
+  # and install-<toolchain>/.
+  toolchain ? "gcc",
+  # OMPI_CC and OMPI_CXX, so that mpicc and mpicxx use the compiler of
+  # stdenv (see clang.nix).
+  mpiCompilerEnv ? { },
   python3,
   llvmPackages_22,
   mpi,
@@ -58,7 +69,7 @@ let
       extraEnv ? { },
       extraShellHook ? "",
     }:
-    mkShell {
+    (mkShell.override { inherit stdenv; }) {
       inputsFrom = [
         sst-core
         elements
@@ -116,7 +127,9 @@ let
         FILECHECK = "${llvm.llvm}/bin/FileCheck";
         # bamboo.sh loads mpi/openmpi-4.1.4 and friends with `module load`.
         MODULEPATH = "${modulefiles}";
+        SST_TOOLCHAIN = toolchain;
       }
+      // mpiCompilerEnv
       // lib.optionalAttrs havePebil {
         # The Ariel EPA tests run when this directory exists.
         PEBIL_ROOT = "${pebil}";

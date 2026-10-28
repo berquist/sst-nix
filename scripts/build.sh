@@ -9,6 +9,9 @@
 # optional dependency the shell provides.  Element libraries register with
 # install/sst-core/etc/sst/sstsimulator.conf.
 #
+# The clang shell sets SST_TOOLCHAIN=clang; its builds go to build-clang/ and
+# install-clang/ instead.
+#
 # Usage: build.sh <project> [extra configure arguments...]
 #   project: sst-core, sst-elements, sst-macro, sst-hgcc, juno,
 #            sst-external-element
@@ -17,10 +20,16 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project="${1:?usage: build.sh <project> [configure arguments...]}"
 shift
+toolchain="${SST_TOOLCHAIN:-gcc}"
+suffix=""
+if [[ "${toolchain}" != gcc ]]; then
+    suffix="-${toolchain}"
+fi
 src="${root}/${project}"
-build="${root}/build/${project}"
-prefix="${root}/install/${project}"
-core="${root}/install/sst-core"
+build="${root}/build${suffix}/${project}"
+install="${root}/install${suffix}"
+prefix="${install}/${project}"
+core="${install}/sst-core"
 jobs="$(nproc)"
 
 if [[ ! -d "${src}" ]]; then
@@ -64,20 +73,21 @@ sst-macro)
 sst-hgcc)
     need_core
     autotools ./autogen.sh --with-sst-core="${core}" \
-        --with-sst-elements="${root}/install/sst-elements" \
+        --with-sst-elements="${install}/sst-elements" \
         --with-clang="${LLVM_ROOT:?LLVM_ROOT is not set; use the dev shell}" \
         --with-std=17 --enable-strict-tests "$@"
     ;;
 juno)
     # The Makefiles build in the checkout; `install` runs sst-register
-    # with the checkout paths.
+    # with the checkout paths.  --always-make, because the objects in the
+    # checkout can be from the other toolchain.
     need_core
-    make --directory="${src}/src" --jobs="${jobs}"
-    make --directory="${src}/asm" CXX=c++ sst-juno-asm
+    make --directory="${src}/src" --jobs="${jobs}" --always-make
+    make --directory="${src}/asm" --always-make CXX=c++ sst-juno-asm
     ;;
 sst-external-element)
     need_core
-    make --directory="${src}/src"
+    make --directory="${src}/src" --always-make
     ;;
 *)
     echo "build.sh: unknown project ${project}" >&2

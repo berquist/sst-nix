@@ -59,35 +59,40 @@
               lib.toList (pkg.meta.license or [ ])
             );
         };
+        # The packages of this flake built with Clang (nix/clang.nix).
+        pkgsClang = pkgs.extend (import ./nix/clang.nix);
         # Only those that build on this platform (PEBIL is x86_64 only).
-        packages = lib.filterAttrs (_: lib.meta.availableOn pkgs.stdenv.hostPlatform) {
-          inherit (pkgs)
-            sst-core
-            sst-elements
-            sst-elements-full-free
-            sst-macro
-            sst-macro-standalone
-            sst-hgcc
-            juno
-            sst-external-element
-            sst-with-elements
-            # Dependencies nixpkgs lacks
-            sst-dumpi
-            ramulator
-            ramulator2
-            goblin-hmcsim
-            otf
-            epa-inst-libs
-            pebil
-            lmod
-            # sst-sqe
-            openmpi_4
-            sqe-modulefiles
-            vanadis-cross-compilers
-            ;
-          blessings = pkgs.python3Packages.blessings;
-          default = pkgs.sst-with-elements;
-        };
+        packagesOf =
+          p:
+          lib.filterAttrs (_: lib.meta.availableOn pkgs.stdenv.hostPlatform) {
+            inherit (p)
+              sst-core
+              sst-elements
+              sst-elements-full-free
+              sst-macro
+              sst-macro-standalone
+              sst-hgcc
+              juno
+              sst-external-element
+              sst-with-elements
+              # Dependencies nixpkgs lacks
+              sst-dumpi
+              ramulator
+              ramulator2
+              goblin-hmcsim
+              otf
+              epa-inst-libs
+              pebil
+              lmod
+              # sst-sqe
+              openmpi_4
+              sqe-modulefiles
+              vanadis-cross-compilers
+              ;
+            blessings = p.python3Packages.blessings;
+            default = p.sst-with-elements;
+          };
+        packages = packagesOf pkgs;
         # Unfree; not in checks.
         unfreePackages = lib.optionalAttrs (lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.intel-pin) {
           inherit (pkgs)
@@ -98,11 +103,19 @@
             ;
         };
         shells = pkgs.callPackage ./nix/shells.nix { };
+        clangShells = pkgsClang.callPackage ./nix/shells.nix {
+          stdenv = pkgsClang.sstClangStdenv;
+          toolchain = "clang";
+          mpiCompilerEnv = pkgsClang.sstClangMpiCompilerEnv;
+        };
       in
       {
         packages = packages // unfreePackages;
+        # nix build .#clang.<package>
+        legacyPackages.clang = packagesOf pkgsClang;
         devShells = {
           inherit (shells) default;
+          clang = clangShells.default;
         }
         // lib.optionalAttrs (unfreePackages != { }) { inherit (shells) full; };
         checks = packages // {
@@ -127,6 +140,10 @@
       }
     )
     // {
-      overlays.default = import ./nix/overlay.nix inputs;
+      overlays = {
+        default = import ./nix/overlay.nix inputs;
+        # default, then its packages rebuilt with Clang
+        clang = nixpkgs.lib.composeExtensions self.overlays.default (import ./nix/clang.nix);
+      };
     };
 }
