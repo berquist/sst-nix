@@ -9,6 +9,11 @@
 # optional dependency the shell provides.  Element libraries register with
 # install/sst-core/etc/sst/sstsimulator.conf.
 #
+# The patches of the Nix packages (nix/patches/<project>) go into the
+# checkout before the build, so that local and Nix builds compile the same
+# source.  A patch that is already applied is skipped.  Unlike the Nix
+# packages, every patch is applied, whatever the dependencies.
+#
 # The clang shell sets SST_TOOLCHAIN=clang; its builds go to build-clang/ and
 # install-clang/ instead.
 #
@@ -45,10 +50,30 @@ need_core() {
     export PATH="${core}/bin:${PATH}"
 }
 
+# Apply nix/patches/<name>/*.patch to a directory, unless already applied:
+# then the reverse applies cleanly.  --force stops patch from taking an
+# unapplied patch for a reversed one.
+apply_patches() {
+    local dir="$1" name="$2" file
+    for file in "${root}/nix/patches/${name}"/*.patch; do
+        if patch --directory="${dir}" --strip=1 --reverse --force --dry-run \
+            <"${file}" >/dev/null 2>&1; then
+            echo "build.sh: ${name}/${file##*/} is already applied"
+        else
+            echo "build.sh: applying ${name}/${file##*/}"
+            patch --directory="${dir}" --strip=1 --forward <"${file}"
+        fi
+    done
+}
+
 autotools() {
     local generate="$1"
     shift
     (cd "${src}" && "${generate}")
+    configure_and_install "$@"
+}
+
+configure_and_install() {
     mkdir --parents "${build}"
     cd "${build}"
     "${src}/configure" --prefix="${prefix}" "$@"
@@ -62,12 +87,18 @@ sst-core)
     ;;
 sst-elements)
     need_core
+    apply_patches "${src}" sst-elements
     read -ra flags <<<"${SST_ELEMENTS_CONFIGURE_FLAGS:-}"
     autotools ./autogen.sh --with-sst-core="${core}" "${flags[@]}" "$@"
     ;;
 sst-macro)
     need_core
-    autotools ./bootstrap.sh --with-sst-core="${core}" \
+    apply_patches "${src}" sst-macro
+    # bootstrap.sh runs `git submodule update`, so the sst-dumpi patches go
+    # in after it.  None of them changes the build system.
+    (cd "${src}" && ./bootstrap.sh)
+    apply_patches "${src}/sst-dumpi" sst-dumpi
+    configure_and_install --with-sst-core="${core}" \
         --disable-regex --disable-unordered-containers "$@"
     ;;
 sst-hgcc)
