@@ -14,6 +14,7 @@ let
   # and final cannot be known before them.
   inherit (prev) lib;
 
+  llvmPackages = final.llvmPackages_22;
   stdenv = final.sstClangStdenv;
 
   # sst-core, sst-dumpi, otf, PEBIL and epa-inst-libs compile with mpicc and
@@ -32,7 +33,7 @@ let
     });
 in
 {
-  sstClangStdenv = final.llvmPackages_22.stdenv;
+  sstClangStdenv = llvmPackages.stdenv;
   # For the dev shell (shells.nix).
   sstClangMpiCompilerEnv = mpiCompilerEnv;
 }
@@ -48,6 +49,9 @@ in
   "ramulator2"
   "goblin-hmcsim"
   "otf"
-  "epa-inst-libs"
   "pebil"
 ] (name: withClang prev.${name})
+// {
+  # The OpenMP runtime of the same LLVM.
+  epa-inst-libs = withClang (prev.epa-inst-libs.override { inherit llvmPackages; });
+}

@@ -12,6 +12,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  llvmPackages,
   mpi,
   papi,
   sst-core,
@@ -42,7 +43,14 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ mpi ];
 
-  buildInputs = [ mpi ] ++ lib.optional papiSupport papi ++ lib.optional sstSupport sst-core;
+  # AddressStreamDriver_omp is compiled with -fopenmp; GCC has its own
+  # runtime, Clang needs this one.
+  buildInputs = [
+    mpi
+  ]
+  ++ lib.optional papiSupport papi
+  ++ lib.optional sstSupport sst-core
+  ++ lib.optional stdenv.cc.isClang llvmPackages.openmp;
 
   # What PEBIL's configure exports to this one.
   env = {
