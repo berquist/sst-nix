@@ -52,7 +52,8 @@ need_core() {
 
 # Apply nix/patches/<name>/*.patch to a directory, unless already applied:
 # then the reverse applies cleanly.  --force stops patch from taking an
-# unapplied patch for a reversed one.
+# unapplied patch for a reversed one.  Sets `patched` when a patch goes in.
+patched=0
 apply_patches() {
     local dir="$1" name="$2" file
     for file in "${root}/nix/patches/${name}"/*.patch; do
@@ -62,8 +63,18 @@ apply_patches() {
         else
             echo "build.sh: applying ${name}/${file##*/}"
             patch --directory="${dir}" --strip=1 --forward <"${file}"
+            patched=1
         fi
     done
+}
+
+# A build tree from before a patch can be stale: make does not relink a
+# library when only its link flags change.  Start that tree again.
+clean_if_patched() {
+    if [[ "${patched}" -eq 1 ]]; then
+        echo "build.sh: new patches; removing ${build}"
+        rm --recursive --force "${build}"
+    fi
 }
 
 autotools() {
@@ -88,6 +99,7 @@ sst-core)
 sst-elements)
     need_core
     apply_patches "${src}" sst-elements
+    clean_if_patched
     read -ra flags <<<"${SST_ELEMENTS_CONFIGURE_FLAGS:-}"
     autotools ./autogen.sh --with-sst-core="${core}" "${flags[@]}" "$@"
     ;;
@@ -98,6 +110,7 @@ sst-macro)
     # in after it.  None of them changes the build system.
     (cd "${src}" && ./bootstrap.sh)
     apply_patches "${src}/sst-dumpi" sst-dumpi
+    clean_if_patched
     configure_and_install --with-sst-core="${core}" \
         --disable-regex --disable-unordered-containers "$@"
     ;;
