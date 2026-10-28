@@ -45,6 +45,17 @@ stdenv.mkDerivation (finalAttrs: {
     # even in this uninstantiated template, which the Ariel pintool includes.
     substituteInPlace $out/extras/components/include/util/range.hpp \
       --replace-fail "Contains(range.m_base)" "Contains(range._base)"
+    # Three anonymous structs with member functions get their linkage name
+    # from a typedef, which GCC 15 and later warn about
+    # (-Wnon-c-typedef-for-linkage), and the pintool is compiled with -Werror.
+    # Give each struct the name of its typedef; the mangled names stay the same.
+    substituteInPlace $out/source/include/pin/gen/pinsync.hpp \
+      --replace-fail $'non-recursive lock with POD semantics.\n */\ntypedef struct\n' \
+                     $'non-recursive lock with POD semantics.\n */\ntypedef struct PINSYNC_POD_LOCK\n' \
+      --replace-fail $'Read-writer lock with POD semantics.\n */\ntypedef struct\n' \
+                     $'Read-writer lock with POD semantics.\n */\ntypedef struct PINSYNC_POD_RWLOCK\n' \
+      --replace-fail $'works as a barrier.\n */\ntypedef struct\n' \
+                     $'works as a barrier.\n */\ntypedef struct PINSYNC_POD_SEMAPHORE\n'
     mkdir --parents $out/bin
     ln --symbolic $out/pin $out/bin/pin
     runHook postInstall

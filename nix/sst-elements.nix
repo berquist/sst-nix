@@ -147,13 +147,6 @@ stdenv.mkDerivation (finalAttrs: {
     ./autogen.sh
   '';
 
-  # The pintool is compiled with -Werror (config/sst_check_pintool.m4), and
-  # GCC 15 and later warn about the anonymous typedef structs of Pin's
-  # pinsync.hpp.
-  env = lib.optionalAttrs pinSupport {
-    NIX_CFLAGS_COMPILE = "-Wno-error=non-c-typedef-for-linkage";
-  };
-
   # The summary at the end of configure uses bash indirection.
   configureFlags = [ "--with-sst-core=${sst-core}" ] ++ sstConfigureFlags;
   CONFIG_SHELL = stdenv.shell;
