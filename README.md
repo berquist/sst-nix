@@ -169,6 +169,7 @@ real versions, and `pin/pin-3.31` in the `full` shell.
 | sst-dumpi    | perfctrs.c ported from PAPI's removed high-level API to event sets              |
 | ramulator2   | sqe's `.template as<T>()` fix as `substituteInPlace` (CRLF source)              |
 | ramulator2   | yaml-cpp 0.7.0 `#include <cstdint>`; library renamed `libramulator2.so`         |
+| ramulator2   | spdlog's fmt 9.1: format string check on one view of the literal (Clang 22)     |
 | otf          | `PyEval_CallObject`, `SWIG_Python_AppendOutput`, relative import in Python      |
 | openmpi_4    | `container_of` for libfabric 2; no `always_inline` in the OFI MTL               |
 | openmpi_4    | 4.1-only files (`ortecc`, `orte-info`, `mpirun` link) in the 5.x recipe's fixup |

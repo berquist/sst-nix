@@ -69,6 +69,14 @@ stdenv.mkDerivation (finalAttrs: {
     # yaml-cpp 0.7.0 takes uint16_t from <cstdint> without including it,
     # which GCC 13 and later no longer do for it.
     sed --in-place '1i #include <cstdint>' ext/yaml-cpp/src/emitterutils.cpp
+    # The fmt 9.1.0 of spdlog checks a format string with a second view of
+    # the literal.  Clang (22 at least) takes two evaluations of a literal
+    # as two objects (CWG2765), so the pointer difference between the views is
+    # not a constant expression.  Check the view that is parsed.  The
+    # headers go to $out too, for sst-elements.
+    substituteInPlace ext/spdlog/include/spdlog/fmt/bundled/core.h \
+      --replace-fail "detail::parse_format_string<true>(str_, checker(s, {}));" \
+                     "detail::parse_format_string<true>(str_, checker(str_, {}));"
     # FetchContent uses these in place of downloads; it wants absolute paths.
     cmakeFlagsArray+=(
       "-DFETCHCONTENT_SOURCE_DIR_YAML-CPP=$PWD/ext/yaml-cpp"
