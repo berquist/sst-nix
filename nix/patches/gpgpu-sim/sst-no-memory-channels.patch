@@ -1,0 +1,31 @@
+addrdec: do not divide by zero without memory channels
+
+In SST mode, SST models the memory, so the GPGPU-Sim configuration of the
+balar tests has no memory channels (-gpgpu_n_mem 0).  Then the total
+number of sub-partitions is 0, and the factorization for IPOLY-MODULO
+hashing divides 0 by 0 in linear_to_raw_address_translation::init.  SST
+stops with SIGFPE when balar starts GPGPU-Sim.  With no channels there is
+nothing to factorize, so skip it.
+
+--- a/src/gpgpu-sim/addrdec.cc
++++ b/src/gpgpu-sim/addrdec.cc
+@@ -348,9 +348,16 @@
+   // Perform factorization of m_n_channel * m_n_sub_partition_in_channel
+   // for IPOLY-MODULO hashing, which we factorize the total numbers of
+   // sub partitions into powers of two and one other number.
+-  ipolym_power_of_2_factor =
+-      m_n_sub_partition_total & (-m_n_sub_partition_total);
+-  ipolym_modulo_factor = m_n_sub_partition_total / ipolym_power_of_2_factor;
++  // In SST mode there can be no memory channels (SST models the memory),
++  // and then there is nothing to factorize.
++  if (m_n_sub_partition_total == 0) {
++    ipolym_power_of_2_factor = 0;
++    ipolym_modulo_factor = 0;
++  } else {
++    ipolym_power_of_2_factor =
++        m_n_sub_partition_total & (-m_n_sub_partition_total);
++    ipolym_modulo_factor = m_n_sub_partition_total / ipolym_power_of_2_factor;
++  }
+ 
+   gap = (n_channel - ::powli(2, nchipbits));
+   if (gap) {

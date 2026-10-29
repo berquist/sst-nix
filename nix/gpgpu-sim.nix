@@ -36,6 +36,8 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-VoHi4yWpYe6vXNHNB3t8mfBDSEPwjbSdwwMcqrLWfVs=";
   };
 
+  patches = [ ./patches/gpgpu-sim/sst-no-memory-channels.patch ];
+
   nativeBuildInputs = [
     bison
     flex
