@@ -107,14 +107,25 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru = {
+  passthru = rec {
     inherit cuda;
     # CUDA_VERSION_NUMBER of setup_environment: printf "%02u%02u" of 10
     # times the major and 10 times the minor version, so 12090 for 12.9.
-    # The balar tests read it from the environment.
     cudaVersionNumber =
       toString (10 * lib.toInt (lib.versions.major cuda.version))
       + lib.fixedWidthNumber 2 (10 * lib.toInt (lib.versions.minor cuda.version));
+    # The variables of setup_environment that programs which run on
+    # GPGPU-Sim (the balar tests) read at run time.  For CUDA 6 and later
+    # the script also sets the PTX_SIM_* and CUOBJDUMP_SIM_FILE ones;
+    # without CUOBJDUMP_SIM_FILE, GPGPU-Sim aborts in pruneSectionList.
+    runtimeEnv = {
+      CUDA_VERSION_NUMBER = cudaVersionNumber;
+    }
+    // lib.optionalAttrs (lib.versionAtLeast cuda.version "6.0") {
+      PTX_SIM_USE_PTX_FILE = "1.ptx";
+      PTX_SIM_KERNELFILE = "_1.ptx";
+      CUOBJDUMP_SIM_FILE = "jj";
+    };
   };
 
   meta = {
