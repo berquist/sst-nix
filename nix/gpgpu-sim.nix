@@ -107,7 +107,15 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru = { inherit cuda; };
+  passthru = {
+    inherit cuda;
+    # CUDA_VERSION_NUMBER of setup_environment: printf "%02u%02u" of 10
+    # times the major and 10 times the minor version, so 12090 for 12.9.
+    # The balar tests read it from the environment.
+    cudaVersionNumber =
+      toString (10 * lib.toInt (lib.versions.major cuda.version))
+      + lib.fixedWidthNumber 2 (10 * lib.toInt (lib.versions.minor cuda.version));
+  };
 
   meta = {
     description = "Cycle-level simulator of GPUs running CUDA and OpenCL workloads";

@@ -171,6 +171,9 @@ in
     extraEnv = {
       CUDA_INSTALL_PATH = "${sst-elements-full.deps.cuda}";
       GPGPUSIM_ROOT = "${sst-elements-full.deps.gpgpu-sim}";
+      # GPGPU-Sim's setup_environment sets it; the balar tests build their
+      # libcudart with it.
+      CUDA_VERSION_NUMBER = sst-elements-full.deps.gpgpu-sim.cudaVersionNumber;
       INTEL_PIN_DIRECTORY = "${sst-elements-full.deps.intel-pin}";
       # balar's Vanadis tests build CUDA programs for riscv64 with these
       # (balar/README.md).  The LLVM of nixpkgs has the RISCV and NVPTX
