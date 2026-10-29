@@ -178,10 +178,20 @@ in
       RISCV_TOOLCHAIN_INSTALL_PATH = "${balar-riscv-toolchain}";
     };
     # The balar tests build the CUDA programs of gpu-app-collection in place
-    # and download their data, so it is a checkout, not a package.
+    # and download their data, so it is a checkout, not a package.  Its
+    # setup_environment sets the variables of the build (balar/README.md),
+    # such as GPUAPPS_SST_MODE, CUDA_VERSION, BINDIR and MAKE_ARGS.  When
+    # $NVIDIA_COMPUTE_SDK_LOCATION/../4.2 is missing, it downloads and
+    # installs the CUDA 4.2 SDK.  Only the x86_64 builds use that SDK (for
+    # libcutil), not the riscv64 builds of SST mode, so an empty directory
+    # stops the download.
     extraShellHook = ''
       if [[ -d "$PWD/third-party/gpu-app-collection" ]]; then
         export GPUAPPS_ROOT="$PWD/third-party/gpu-app-collection"
+        export NVIDIA_COMPUTE_SDK_LOCATION="${
+          pkgs.runCommand "no-cuda-sdk-4.2" { } "mkdir --parents $out/4.2"
+        }/4.2"
+        source "$GPUAPPS_ROOT/src/setup_environment" sst
       fi
     '';
   };
