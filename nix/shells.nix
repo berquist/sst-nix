@@ -34,6 +34,7 @@
   sqe-modulefiles,
   sqe-modulefiles-full,
   vanadis-cross-compilers,
+  balar-riscv-toolchain,
   pebil,
 }:
 
@@ -169,6 +170,12 @@ in
       CUDA_INSTALL_PATH = "${sst-elements-full.deps.cuda}";
       GPGPUSIM_ROOT = "${sst-elements-full.deps.gpgpu-sim}";
       INTEL_PIN_DIRECTORY = "${sst-elements-full.deps.intel-pin}";
+      # balar's Vanadis tests build CUDA programs for riscv64 with these
+      # (balar/README.md).  The LLVM of nixpkgs has the RISCV and NVPTX
+      # targets.  The unwrapped Clang, because the wrapper adds the flags
+      # of the build platform.
+      LLVM_INSTALL_PATH = "${llvm.clang-unwrapped}";
+      RISCV_TOOLCHAIN_INSTALL_PATH = "${balar-riscv-toolchain}";
     };
     # The balar tests build the CUDA programs of gpu-app-collection in place
     # and download their data, so it is a checkout, not a package.

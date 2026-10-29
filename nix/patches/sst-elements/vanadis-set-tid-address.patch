@@ -1,0 +1,31 @@
+vanadis: return the caller's TID from set_tid_address
+
+Linux returns the thread ID of the caller from set_tid_address(2), and
+musl and glibc store that value as the TID of the main thread.  Vanadis
+returned 0, so every program started with a TID of 0.
+
+musl 1.2.6 made exit() thread-safe with a lock: exit() does a
+compare-and-swap of its own TID into a lock word that starts at 0, and
+calls a_crash() when the old value equals its TID, to trap a recursive
+call.  With a TID of 0, the first call to exit() matches and crashes.
+Vanadis then stops at the ebreak of a_crash() with "instruction-type=
+DECODE_FAULT", as in the rdmaNic tests app/rdma/msg and the others
+built with the riscv64 musl cross compiler of the dev shell.
+
+Return the TID of the process, as the gettid syscall does.  Vanadis
+assigns TIDs from 100, so the value is never 0.  Programs built with
+older musl versions or with glibc get the value that Linux gives them.
+
+--- a/src/sst/elements/vanadis/os/syscall/settidaddress.h
++++ b/src/sst/elements/vanadis/os/syscall/settidaddress.h
+@@ -32,7 +32,9 @@
+         #endif
+         process->setTidAddress( event->getTidAddress() );
+
+-        setReturnSuccess(0);
++        // Linux returns the TID of the caller.  musl keeps it as the TID of
++        // the main thread, and its exit() crashes when that TID is 0.
++        setReturnSuccess(process->gettid());
+     }
+ };
+

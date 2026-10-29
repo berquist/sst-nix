@@ -95,6 +95,8 @@ in
 
   vanadis-cross-compilers = final.callPackage ./vanadis-cross-compilers.nix { };
 
+  balar-riscv-toolchain = final.callPackage ./balar-riscv-toolchain.nix { };
+
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: _pyprev: {
       blessings = pyfinal.callPackage ./python/blessings.nix { };

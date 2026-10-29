@@ -88,6 +88,7 @@
               openmpi_4
               sqe-modulefiles
               vanadis-cross-compilers
+              balar-riscv-toolchain
               ;
             blessings = p.python3Packages.blessings;
             default = p.sst-with-elements;

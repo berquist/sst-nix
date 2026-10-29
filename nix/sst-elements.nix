@@ -134,10 +134,12 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.filter (p: p != null) (lib.attrValues deps);
 
   # Each only where it matters, so that the other variants keep the
-  # upstream source.
-  patches =
-    lib.optional ramulator2Support ./patches/sst-elements/ramulator2-lib-name.patch
-    ++ lib.optional cudaSupport ./patches/sst-elements/balar-cuda12.patch;
+  # upstream source.  Vanadis is in every variant.
+  patches = [
+    ./patches/sst-elements/vanadis-set-tid-address.patch
+  ]
+  ++ lib.optional ramulator2Support ./patches/sst-elements/ramulator2-lib-name.patch
+  ++ lib.optional cudaSupport ./patches/sst-elements/balar-cuda12.patch;
 
   postPatch = ''
     patchShebangs autogen.sh
