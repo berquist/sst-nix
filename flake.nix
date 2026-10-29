@@ -3,6 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # CUDA 11 for the GPU apps of the balar tests (nix/overlay.nix).
+    # nixpkgs has no CUDA 11 after 25.05.  Only that package comes from
+    # this input.
+    nixpkgs-cuda11.url = "github:NixOS/nixpkgs/nixos-25.05";
     systems.url = "github:nix-systems/default";
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -101,6 +105,7 @@
             gpgpu-sim
             sst-elements-full
             sqe-modulefiles-full
+            balar-gpu-apps-cuda
             ;
         };
         shells = pkgs.callPackage ./nix/shells.nix { };

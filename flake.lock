@@ -53,11 +53,28 @@
         "type": "github"
       }
     },
+    "nixpkgs-cuda11": {
+      "locked": {
+        "lastModified": 1767313136,
+        "narHash": "sha256-16KkgfdYqjaeRGBaYsNrhPRRENs0qzkQVUooNHtoy2w=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ac62194c3917d5f474c1a844b6fd6da2db95077d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
         "juno": "juno",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-cuda11": "nixpkgs-cuda11",
         "sst-core": "sst-core",
         "sst-elements": "sst-elements",
         "sst-external-element": "sst-external-element",

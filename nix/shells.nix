@@ -35,6 +35,7 @@
   sqe-modulefiles-full,
   vanadis-cross-compilers,
   balar-riscv-toolchain,
+  balar-gpu-apps-cuda,
   pebil,
 }:
 
@@ -185,6 +186,11 @@ in
     # installs the CUDA 4.2 SDK.  Only the x86_64 builds use that SDK (for
     # libcutil), not the riscv64 builds of SST mode, so an empty directory
     # stops the download.
+    #
+    # The apps build against CUDA 11 (see balar-gpu-apps-cuda in
+    # overlay.nix), through the make variable cuda-install of common.mk.
+    # setup_environment still uses the nvcc of CUDA 12.9 for BINDIR, because
+    # the test finds the apps in bin/<version of nvcc>.
     extraShellHook = ''
       if [[ -d "$PWD/third-party/gpu-app-collection" ]]; then
         export GPUAPPS_ROOT="$PWD/third-party/gpu-app-collection"
@@ -192,6 +198,7 @@ in
           pkgs.runCommand "no-cuda-sdk-4.2" { } "mkdir --parents $out/4.2"
         }/4.2"
         source "$GPUAPPS_ROOT/src/setup_environment" sst
+        export MAKE_ARGS="$MAKE_ARGS cuda-install=${balar-gpu-apps-cuda}"
       fi
     '';
   };

@@ -97,6 +97,18 @@ in
 
   balar-riscv-toolchain = final.callPackage ./balar-riscv-toolchain.nix { };
 
+  # CUDA 11.8 for the GPU apps of the balar tests (gpu-app-collection).
+  # Their kmeans uses texture references, which CUDA 12 removed.  balar and
+  # GPGPU-Sim stay on CUDA 12.9: balar's packets have the CUDA 11 layout of
+  # textureReference (patches/sst-elements/balar-cuda12.patch).
+  balar-gpu-apps-cuda =
+    (import inputs.nixpkgs-cuda11 {
+      localSystem = final.stdenv.hostPlatform.system;
+      config = {
+        inherit (final.config) allowUnfree allowUnfreePredicate;
+      };
+    }).cudaPackages_11_8.cudatoolkit;
+
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: _pyprev: {
       blessings = pyfinal.callPackage ./python/blessings.nix { };
