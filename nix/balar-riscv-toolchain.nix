@@ -5,7 +5,8 @@
 # (balar/README.md):
 #
 #   bin/riscv64-unknown-linux-gnu-gcc  and the other tools
-#   sysroot/usr/include                glibc and Linux headers
+#   sysroot/usr/include                glibc and Linux headers (glibc has
+#                                      symlinks to the Linux headers)
 #   riscv64-unknown-linux-gnu/include/c++/<version>
 #                                      libstdc++ headers
 #
@@ -35,7 +36,6 @@ let
     localSystem = stdenv.buildPlatform.system;
     crossSystem.config = "riscv64-unknown-linux-gnu";
   };
-  inherit (crossPkgs) linuxHeaders;
   cc = crossPkgs.stdenv.cc;
   gcc = cc.cc;
   glibc = cc.libc;
@@ -99,10 +99,9 @@ runCommand "balar-riscv-toolchain"
     fi
     merge "$(dirname "$libstdcxx")" $out/${triple}/lib
 
-    # The sysroot: glibc and Linux headers, and the glibc libraries with
-    # the static ones.
+    # The sysroot: glibc headers, which have symlinks to the Linux headers,
+    # and the glibc libraries with the static ones.
     merge ${lib.getDev glibc}/include $out/sysroot/usr/include
-    merge ${linuxHeaders}/include $out/sysroot/usr/include
     merge ${lib.getLib glibc}/lib $out/sysroot/usr/lib
     merge ${glibc.static}/lib $out/sysroot/usr/lib
   ''
