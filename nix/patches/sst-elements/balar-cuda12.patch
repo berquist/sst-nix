@@ -1,6 +1,18 @@
 balar: build with CUDA 12.  CUDA 12 removed struct textureReference, which
 balar packets carry by value; define its CUDA 11 layout when CUDA >= 12.
+The tests build libcudart against balar_packet.h in a temporary directory,
+so they link the new header there too.
 
+--- a/src/sst/elements/balar/tests/testBalar_testsuite_util.py
++++ b/src/sst/elements/balar/tests/testBalar_testsuite_util.py
+@@ -380,6 +380,7 @@
+         # Copy the shared packet definition files from balar src
+         os_symlink_file(self.balarElementDir, tmpdir, "balar_packet.h")
+         os_symlink_file(self.balarElementDir, tmpdir, "balar_consts.h")
++        os_symlink_file(self.balarElementDir, tmpdir, "balar_cuda12_compat.h")
+
+         src_cudart_dir = os.path.abspath("{0}/libcudart".format(test_path))
+         for f in os.listdir(src_cudart_dir):
 --- a/src/sst/elements/balar/balar_packet.h	2026-10-17 15:43:55.083089923 -0400
 +++ b/src/sst/elements/balar/balar_packet.h	2026-10-17 15:43:55.109090680 -0400
 @@ -23,6 +23,7 @@
