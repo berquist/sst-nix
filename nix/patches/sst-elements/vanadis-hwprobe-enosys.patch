@@ -1,0 +1,33 @@
+vanadis: return ENOSYS from riscv_hwprobe
+
+Vanadis returned success from riscv_hwprobe (syscall 258), but it did not
+write the values of the key/value pairs.  Newer glibc versions, such as
+the one of nixpkgs, select their RISC-V string functions with ifuncs.  The resolvers set only the key
+of the pair and then read its value, so with this success they read
+uninitialized stack memory as the features of the CPU.  When bit 2
+(RISCV_HWPROBE_IMA_V) happened to be set, glibc selected the vector (RVV)
+functions, for example __strrchr_vector.  Vanadis cannot decode RVV
+instructions, so the program stopped with a DECODE_FAULT.  The balar
+Vanadis test (vecadd, static glibc) stopped in this way.
+
+Return ENOSYS, as Linux before 6.4 (which has no riscv_hwprobe) does.
+glibc then uses AT_HWCAP, which Vanadis gives as 0, and selects the
+generic functions.
+
+--- a/src/sst/elements/vanadis/os/vriscvcpuos.h
++++ b/src/sst/elements/vanadis/os/vriscvcpuos.h
+@@ -323,9 +323,12 @@
+     VanadisSyscallEvent* HWPROBE( int hw_thr ) {
+         #ifdef VANADIS_BUILD_DEBUG
+         // Warning but ifdef'd because this rarely causes a problem
+-        output_->output("Warning: VANADIS_SYSCALL_RISCV64_HWPROBE not implemented return success\n");
++        output_->output("Warning: VANADIS_SYSCALL_RISCV64_HWPROBE not implemented return ENOSYS\n");
+         #endif
+-        recvSyscallResp(new VanadisSyscallResponse(0));
++        // Return ENOSYS, as Linux before 6.4 does.  Success without the
++        // values makes glibc read its uninitialized values as the features
++        // of the CPU, and then its ifuncs can select vector (RVV) functions.
++        recvSyscallResp(new VanadisSyscallResponse(-ENOSYS));
+         return nullptr;
+     }
+ 

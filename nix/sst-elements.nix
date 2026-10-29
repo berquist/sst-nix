@@ -137,6 +137,7 @@ stdenv.mkDerivation (finalAttrs: {
   # upstream source.  Vanadis is in every variant.
   patches = [
     ./patches/sst-elements/vanadis-set-tid-address.patch
+    ./patches/sst-elements/vanadis-hwprobe-enosys.patch
   ]
   ++ lib.optional ramulator2Support ./patches/sst-elements/ramulator2-lib-name.patch
   ++ lib.optional cudaSupport ./patches/sst-elements/balar-cuda12.patch;
