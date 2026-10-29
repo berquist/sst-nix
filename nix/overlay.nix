@@ -109,6 +109,13 @@ in
       };
     }).cudaPackages_11_8.cudatoolkit;
 
+  # The input data of gpu-app-collection, which its get_data.sh downloads.
+  # The full shell extracts it for the balar tests (nix/shells.nix).
+  gpu-app-collection-data = final.fetchurl {
+    url = "https://engineering.purdue.edu/tgrogers/gpgpu-sim/benchmark_data/all.gpgpu-sim-app-data.tgz";
+    sha256 = "0yciw1nbva9z17kvalxsp14ziwlazia5z54fm5269wacyl1i77yr";
+  };
+
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: _pyprev: {
       blessings = pyfinal.callPackage ./python/blessings.nix { };

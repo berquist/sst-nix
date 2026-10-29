@@ -36,6 +36,7 @@
   vanadis-cross-compilers,
   balar-riscv-toolchain,
   balar-gpu-apps-cuda,
+  gpu-app-collection-data,
   pebil,
 }:
 
@@ -191,6 +192,12 @@ in
     # overlay.nix), through the make variable cuda-install of common.mk.
     # setup_environment still uses the nvcc of CUDA 12.9 for BINDIR, because
     # the test finds the apps in bin/<version of nvcc>.
+    #
+    # The test runs `make data`, and get_data.sh downloads the data unless
+    # data_dirs/ exists.  So the hook extracts the data from the store
+    # first.  It is a writable copy, because some apps write into their
+    # data/ directory.  data_dirs/ appears only after a complete extraction,
+    # because get_data.sh does not repair an incomplete one.
     extraShellHook = ''
       if [[ -d "$PWD/third-party/gpu-app-collection" ]]; then
         export GPUAPPS_ROOT="$PWD/third-party/gpu-app-collection"
@@ -199,6 +206,15 @@ in
         }/4.2"
         source "$GPUAPPS_ROOT/src/setup_environment" sst
         export MAKE_ARGS="$MAKE_ARGS cuda-install=${balar-gpu-apps-cuda}"
+        if [[ ! -d "$GPUAPPS_ROOT/data_dirs" ]]; then
+          echo "Extracting the gpu-app-collection data into $GPUAPPS_ROOT/data_dirs"
+          gpuapps_tmp=$(mktemp --directory "$GPUAPPS_ROOT/.data_dirs.XXXXXX")
+          if tar --extract --gzip --file ${gpu-app-collection-data} --directory "$gpuapps_tmp"; then
+            mv "$gpuapps_tmp/data_dirs" "$GPUAPPS_ROOT/data_dirs"
+          fi
+          rm --recursive --force "$gpuapps_tmp"
+          unset gpuapps_tmp
+        fi
       fi
     '';
   };
