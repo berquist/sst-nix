@@ -14,14 +14,23 @@
 
 let
   crossPkgs =
-    config:
+    crossSystem:
     import path {
       localSystem = stdenv.buildPlatform.system;
-      crossSystem = { inherit config; };
+      inherit crossSystem;
     };
   targets = {
-    riscv64 = crossPkgs "riscv64-unknown-linux-musl";
-    mipsel = crossPkgs "mipsel-unknown-linux-musl";
+    # Vanadis does not decode compressed (C) instructions, so rv64g, not
+    # the default rv64gc.  The programs are linked statically, so musl and
+    # libgcc must be built for rv64g too: set it for the whole platform.
+    riscv64 = crossPkgs {
+      config = "riscv64-unknown-linux-musl";
+      gcc = {
+        arch = "rv64g";
+        abi = "lp64d";
+      };
+    };
+    mipsel = crossPkgs { config = "mipsel-unknown-linux-musl"; };
   };
 in
 runCommand "vanadis-cross-compilers"
