@@ -103,6 +103,8 @@ let
         ninja
         pkg-config
         ccache
+        # compile_commands.json (scripts/build.sh)
+        bear
         gdb
         # Used by sst-sqe/buildsys/bamboo.sh
         git

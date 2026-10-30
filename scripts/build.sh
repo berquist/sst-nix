@@ -14,6 +14,10 @@
 # source.  A patch that is already applied is skipped.  Unlike the Nix
 # packages, every patch is applied, whatever the dependencies.
 #
+# The compile steps run under Bear, which writes the compiler commands to
+# build/<project>/compile_commands.json.  The checkout gets a link to that
+# file, where clangd looks for it.
+#
 # The clang shell sets SST_TOOLCHAIN=clang; its builds go to build-clang/ and
 # install-clang/ instead.
 #
@@ -84,11 +88,23 @@ autotools() {
     configure_and_install "$@"
 }
 
+# Run make under Bear.  --append keeps the commands of the files that an
+# incremental build does not compile again.  `make install` does not go
+# through here, so it cannot change the database.  The link in the checkout
+# points to the toolchain that built last.
+compile() {
+    local db="${build}/compile_commands.json"
+    mkdir --parents "${build}"
+    bear --output "${db}" --append -- make "$@"
+    ln --symbolic --force --no-target-directory "${db}" \
+        "${src}/compile_commands.json"
+}
+
 configure_and_install() {
     mkdir --parents "${build}"
     cd "${build}"
     "${src}/configure" --prefix="${prefix}" "$@"
-    make --jobs="${jobs}"
+    compile --jobs="${jobs}"
     make install
 }
 
@@ -126,12 +142,15 @@ juno)
     # with the checkout paths.  --always-make, because the objects in the
     # checkout can be from the other toolchain.
     need_core
-    make --directory="${src}/src" --jobs="${jobs}" --always-make
-    make --directory="${src}/asm" --always-make CXX=c++ sst-juno-asm
+    # --always-make compiles every file, so the database starts again too.
+    rm --force "${build}/compile_commands.json"
+    compile --directory="${src}/src" --jobs="${jobs}" --always-make
+    compile --directory="${src}/asm" --always-make CXX=c++ sst-juno-asm
     ;;
 sst-external-element)
     need_core
-    make --directory="${src}/src" --always-make
+    rm --force "${build}/compile_commands.json"
+    compile --directory="${src}/src" --always-make
     ;;
 *)
     echo "build.sh: unknown project ${project}" >&2
