@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Berquist <eric.berquist@gmail.com>
+Date: Sat, 31 Oct 2026 00:00:00 +0000
+Subject: [PATCH] Give pyright, ty and ruff the test framework search path
+
+The test suites import the test framework with `from sst_unittest import
+*` and similar.  At run time, the test engine puts the folder of these
+modules on sys.path.  Static tools do not know this, so pyright,
+basedpyright and ty report "unresolved import" for every test file, and
+then cannot check anything that comes from the framework.
+
+mypy already gets the folder through mypy_path.  Give the same folder to
+pyright (extraPaths, also read by basedpyright) and ty (extra-paths).
+Also add it to the ruff source roots, so that the isort rules classify
+the framework modules as first-party.
+---
+ pyproject.toml | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/pyproject.toml b/pyproject.toml
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -24,9 +24,17 @@ ignore_missing_imports = true
+ [tool.pyright]
+ pythonVersion = "3.9"
++# The test engine puts this folder on sys.path (mypy_path above).
++extraPaths = ["src/sst/core/testingframework"]
++
++[tool.ty.environment]
++python-version = "3.9"
++extra-paths = ["src/sst/core/testingframework"]
+
+ [tool.ruff]
+ cache-dir = "build/.ruff_cache"
+ line-length = 100
++# sst_unittest and the other test framework modules are first-party.
++src = [".", "src/sst/core/testingframework"]
+ target-version = "py39"
+
+ [tool.ruff.lint]
+--
+2.51.0
+
