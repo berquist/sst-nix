@@ -149,10 +149,20 @@ let
       # not see the packages of `python`, so PYTHONPATH carries them.
       # The setup hook of the sst-elements package (an input of sst-hgcc) sets
       # SST_CONFIG_FILE_PATH; the local builds register in install/ instead.
+      # The test suites of sst-core and sst-elements import the test framework
+      # (sst_unittest and others).  The test engine puts
+      # install/sst-core/libexec before PYTHONPATH in sys.path, so the test
+      # runs use the installed copy.  The editor tools (basedpyright, ty and
+      # mypy) do not know that folder, so PYTHONPATH and MYPYPATH give them the
+      # sources of the sst-core checkout.  direnv runs this hook in the
+      # directory of .envrc.
       shellHook = ''
         unset SST_CONFIG_FILE_PATH
         source ${lmod.initDir}/bash
-        export PYTHONPATH="${python}/${python.sitePackages}''${PYTHONPATH:+:$PYTHONPATH}"
+        sst_testingframework="$PWD/sst-core/src/sst/core/testingframework"
+        export PYTHONPATH="$sst_testingframework:${python}/${python.sitePackages}''${PYTHONPATH:+:$PYTHONPATH}"
+        export MYPYPATH="$sst_testingframework''${MYPYPATH:+:$MYPYPATH}"
+        unset sst_testingframework
       ''
       # Programs that pebil instruments (the Ariel EPA tests make
       # stream.arielinst and others) need its run-time libraries, such as
