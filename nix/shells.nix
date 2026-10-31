@@ -121,6 +121,9 @@ let
         shellcheck
         shfmt
         nixfmt
+        # Python language server and type checker (sst-core/pyproject.toml)
+        basedpyright
+        ty
       ]);
 
       env = {
