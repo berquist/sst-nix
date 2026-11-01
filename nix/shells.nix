@@ -87,6 +87,10 @@ let
         mpi
         lmod
         vanadis-cross-compilers
+        # sst-core/scripts/clang-tidy.sh.  Before the other LLVM packages, so
+        # that the wrapped clang-tidy comes first in PATH: the unwrapped one
+        # does not find the C and C++ standard headers.
+        llvm.clang-tools
         llvm.clang
         llvm.llvm # FileCheck
         llvm.llvm.dev # llvm-config
