@@ -21,6 +21,7 @@
   # stdenv (see clang.nix).
   mpiCompilerEnv ? { },
   python3,
+  llvmPackages_20,
   llvmPackages_22,
   mpi,
   lmod,
@@ -43,6 +44,17 @@
 let
   llvm = llvmPackages_22;
   havePebil = lib.meta.availableOn pkgs.stdenv.hostPlatform pebil;
+
+  # sst-core/scripts/clang-format-test.sh requires clang-format 20.  Only
+  # its programs, so that the other LLVM programs stay those of llvm.
+  clang-format =
+    let
+      clang = llvmPackages_20.clang-unwrapped;
+    in
+    pkgs.runCommand "clang-format-${clang.version}" { } ''
+      mkdir --parents $out/bin
+      ln --symbolic ${clang}/bin/clang-format ${clang}/bin/git-clang-format $out/bin/
+    '';
 
   # The Python packages of all projects, in the interpreter that sst-core
   # embeds (see the README table).
@@ -87,6 +99,8 @@ let
         mpi
         lmod
         vanadis-cross-compilers
+        # Before clang-tools, which has clang-format 22.
+        clang-format
         # sst-core/scripts/clang-tidy.sh.  Before the other LLVM packages, so
         # that the wrapped clang-tidy comes first in PATH: the unwrapped one
         # does not find the C and C++ standard headers.
