@@ -139,6 +139,8 @@ let
         shellcheck
         shfmt
         nixfmt
+        # Bash language server; it runs shellcheck and shfmt
+        bash-language-server
         # Python language server and type checker (sst-core/pyproject.toml)
         basedpyright
         ty
