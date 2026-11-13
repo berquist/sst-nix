@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791914995,
-        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
+        "lastModified": 1794427683,
+        "narHash": "sha256-o7ey9gEilsxaifqJWnBDlYSKbNWYQYtKwDyXeZU2kaU=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+        "rev": "cd489559845d81f673a12885576016c65cbe9363",
         "type": "github"
       },
       "original": {
@@ -39,11 +39,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1793110635,
-        "narHash": "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=",
+        "lastModified": 1794386569,
+        "narHash": "sha256-x9sADJvoVG0L6RejZB+/BB4YiGZFBZrfTlhF4uBq1tQ=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
+        "rev": "d4f25a3e562008648d45bcf2d70bcc7422cad84e",
         "type": "github"
       },
       "original": {
@@ -86,11 +86,11 @@
     "sst-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1793199490,
-        "narHash": "sha256-Bgy0BaOso/hFQ2i3YTI1cibwU8WRZjGEroYuSQQMdDU=",
+        "lastModified": 1794514084,
+        "narHash": "sha256-BLjmAiADmKCGW84KW49klxYtLhZ9gikYGupVZa73AdU=",
         "owner": "sstsimulator",
         "repo": "sst-core",
-        "rev": "4eb15806de1dc732db88606ee16abcc27d2e5aed",
+        "rev": "d0cfab2abb78905aa571ea8ae2d2e7a7327dbbf9",
         "type": "github"
       },
       "original": {
@@ -103,11 +103,11 @@
     "sst-elements": {
       "flake": false,
       "locked": {
-        "lastModified": 1792077092,
-        "narHash": "sha256-6lP/qBxVDarj/3lqWDHjtJJjDo9j9Ne2VVUWbKuSCEs=",
+        "lastModified": 1794409273,
+        "narHash": "sha256-a8INeM27t/uGM+KTRwpqHuvUWI5cNt2uhXAx4jBHH+s=",
         "owner": "sstsimulator",
         "repo": "sst-elements",
-        "rev": "f7cc31ce54f9df493e75537229876450319d4407",
+        "rev": "0ba3b940eab57c8f1d19337285fe86f2a247b994",
         "type": "github"
       },
       "original": {
@@ -137,11 +137,11 @@
     "sst-hgcc": {
       "flake": false,
       "locked": {
-        "lastModified": 1788460781,
-        "narHash": "sha256-aUCVfC0kER/MG7wtIVRBEtVBoJIzK7LaABdvooxYEY4=",
+        "lastModified": 1794239431,
+        "narHash": "sha256-cjGR/xNyzCTHEOTZWoWexj2Y903+AI7Ii6jT2PzvHTs=",
         "owner": "sstsimulator",
         "repo": "sst-hgcc",
-        "rev": "dd299f81b23b4913ddf3e7ddb6bb87d6043c3726",
+        "rev": "418ce8d39ecd8830af6546cf817a49a1480af86b",
         "type": "github"
       },
       "original": {
@@ -154,11 +154,11 @@
     "sst-macro": {
       "flake": false,
       "locked": {
-        "lastModified": 1777581162,
-        "narHash": "sha256-TmYYD/ZftpTru6qOUiAI8Natfo8Z/DTNIZ7eP4rW5HI=",
+        "lastModified": 1793379555,
+        "narHash": "sha256-MZiMNF7xLmmZ02+J1+L0IeRDomMdYawhc6NpQIhBsMA=",
         "owner": "sstsimulator",
         "repo": "sst-macro",
-        "rev": "cd50ac2eb723b7fd3e78b02b65e3a7ba7250c618",
+        "rev": "4f524aeda65401618bbd356f6782e419c5e05ca3",
         "type": "github"
       },
       "original": {
